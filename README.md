@@ -28,6 +28,20 @@ La prima versione non deve "fare pixel art da zero". Deve fare bene queste cose:
 5. cleanup di rumore e pixel isolati
 6. export sprite pulito
 
+Stato attuale del MVP:
+
+- CLI installabile con comando `pixel`
+- import/export PNG
+- manual grid override
+- auto grid euristico minimale
+- alpha/background resolver con `--alpha-threshold` e `--transparent-color`
+- auto background opt-in con `--auto-background`
+- palette automatica o esplicita
+- hard snap alla palette prima del downscale
+- rasterizzazione indicizzata con majority voting
+- cleanup conservativo
+- validation report con metriche e warning
+
 La seconda milestone aggiunge:
 
 1. input di uno sprite base pulito
@@ -45,7 +59,94 @@ Vedi [docs/architecture.md](/home/gabriele/Desktop/pixel/docs/architecture.md).
 ```text
 docs/
   architecture.md
+src/
+  pixel/
+tests/
 ```
+
+## Setup
+
+```bash
+python -m pip install -e .
+```
+
+Dipendenze runtime esterne:
+
+- `Pillow`
+- `numpy`
+
+La CLI usa `argparse`; i modelli dati usano `dataclasses`.
+
+## Usage
+
+Percorso consigliato per il MVP: specificare manualmente la dimensione della
+cella sorgente.
+
+```bash
+pixel clean input.png output.png --cell-width 8 --cell-height 8 --colors 16
+```
+
+Esempio con colore di sfondo da rendere trasparente:
+
+```bash
+pixel clean input.png output.png \
+  --cell-width 8 \
+  --cell-height 8 \
+  --colors 16 \
+  --transparent-color "#ff00ff" \
+  --transparent-tolerance 8 \
+  --report report.json
+```
+
+Se `--cell-height` non viene passato, usa lo stesso valore di `--cell-width`.
+La CLI stampa dimensione sorgente, griglia risultante, palette e warning.
+
+`--transparent-color` usa match esatto di default. Su output AI con sfondo quasi
+magenta, usa `--transparent-tolerance` per assorbire variazioni leggere prima
+della quantizzazione palette.
+
+Se non conosci il colore di sfondo, puoi stimarlo dai bordi dell'immagine:
+
+```bash
+pixel clean input.png output.png \
+  --cell-width 8 \
+  --cell-height 8 \
+  --colors 16 \
+  --auto-background \
+  --transparent-tolerance 12 \
+  --report report.json
+```
+
+`--auto-background` e' opt-in perche' puo' sbagliare se il soggetto tocca molto
+i bordi dell'immagine.
+
+Esiste anche un auto-grid euristico:
+
+```bash
+pixel clean input.png output.png --auto-grid --colors 16
+```
+
+Per ora il percorso affidabile resta il manual override.
+
+## Cosa e' reale vs stub
+
+Reale:
+
+- pipeline Mode A end-to-end
+- matrice interna indicizzata
+- auto background da bordi immagine
+- palette quantization con Pillow senza dithering
+- palette snapping alla palette risolta
+- majority voting su blocchi della griglia
+- export PNG RGBA ricostruito da palette e indici
+- report JSON opzionale
+
+Ancora minimale:
+
+- auto grid detection e' solo una euristica semplice
+- cleanup non modifica pixel isolati, li segnala
+- export `.aseprite` e PNG palettizzato sono rimandati
+- nessuna integrazione AI
 
 ## Principi
 

@@ -1,0 +1,21 @@
+{
+  "errors": [],
+  "metrics": {
+    "cols": 156,
+    "isolated_visible_pixels": 0,
+    "palette_colors": 4,
+    "rows": 156,
+    "source_height": 1254,
+    "source_width": 1254,
+    "transparent_pixels": 24336,
+    "used_color_count": 1,
+    "used_palette_indices": [
+      0
+    ]
+  },
+  "ok": true,
+  "warnings": [
+    "ignored 6px on the right edge outside the grid",
+    "ignored 6px on the bottom edge outside the grid"
+  ]
+}
