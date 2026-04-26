@@ -251,6 +251,8 @@ Approccio consigliato:
 Per il MVP il cleanup deve restare conservativo. Regole iniziali sensate:
 
 - segnalare pixel isolati senza cancellarli di default
+- rimuovere pixel isolati solo in modalita' opt-in e con maggioranza locale
+  chiara
 - applicare/enforzare la palette
 - normalizzare alpha/trasparenza
 
@@ -260,9 +262,9 @@ meglio produrre report e rendere i passaggi osservabili, cosi' in futuro un LLM
 puo' giudicare output intermedi senza sostituire il rasterizer deterministico.
 
 Un pixel isolato puo' essere rumore, ma anche un occhio, un bottone o un
-highlight. Le eventuali correzioni automatiche devono quindi essere opt-in e,
-piu' avanti, basate almeno su contesto locale, contrasto e luminosita' rispetto
-ai vicini.
+highlight. Le correzioni automatiche devono quindi restare opt-in e non devono
+toccare casi ambigui; piu' avanti potranno considerare contrasto e luminosita'
+rispetto ai vicini.
 
 ### 7. Validator
 

@@ -47,6 +47,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Per-channel tolerance for --transparent-color. Default: exact match.",
     )
     clean.add_argument("--alpha-threshold", type=int, default=1)
+    clean.add_argument(
+        "--remove-isolated",
+        action="store_true",
+        help="Remove unambiguous isolated visible pixels after rasterization.",
+    )
     clean.add_argument("--report", type=Path, help="Optional JSON validation report path.")
     clean.add_argument("--quiet", action="store_true")
     clean.set_defaults(func=run_clean)
@@ -73,6 +78,7 @@ def run_clean(args: argparse.Namespace) -> int:
         transparent_color=transparent_color,
         transparent_tolerance=args.transparent_tolerance,
         alpha_threshold=args.alpha_threshold,
+        remove_isolated=args.remove_isolated,
     )
 
     try:

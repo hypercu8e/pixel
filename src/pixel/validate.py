@@ -29,7 +29,7 @@ def validate_asset(
     )
     if isolated:
         report_warnings.append(
-            f"found {isolated} isolated visible pixel(s); not modified by default"
+            f"found {isolated} isolated visible pixel(s) in final output"
         )
 
     used = sorted(int(value) for value in np.unique(pixels))

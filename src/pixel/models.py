@@ -117,6 +117,7 @@ class CleanOptions:
     transparent_color: RgbaColor | None = None
     transparent_tolerance: int = 0
     alpha_threshold: int | None = 1
+    remove_isolated: bool = False
 
 
 @dataclass(frozen=True)

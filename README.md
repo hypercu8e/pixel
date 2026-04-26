@@ -105,6 +105,17 @@ La CLI stampa dimensione sorgente, griglia risultante, palette e warning.
 magenta, usa `--transparent-tolerance` per assorbire variazioni leggere prima
 della quantizzazione palette.
 
+Per rimuovere pixel visibili isolati solo quando il vicinato ha una maggioranza
+chiara, usa il cleanup opt-in:
+
+```bash
+pixel clean input.png output.png \
+  --cell-width 8 \
+  --cell-height 8 \
+  --colors 16 \
+  --remove-isolated
+```
+
 Se non conosci il colore di sfondo, puoi stimarlo dai bordi dell'immagine:
 
 ```bash
@@ -144,7 +155,7 @@ Reale:
 Ancora minimale:
 
 - auto grid detection e' solo una euristica semplice
-- cleanup non modifica pixel isolati, li segnala
+- cleanup dei pixel isolati e' opt-in e corregge solo casi non ambigui
 - export `.aseprite` e PNG palettizzato sono rimandati
 - nessuna integrazione AI
 

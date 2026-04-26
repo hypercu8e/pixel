@@ -72,6 +72,39 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(result.report.metrics["transparent_pixels"], 8)
             self.assertIn("auto-background estimated", result.report.warnings[0])
 
+    def test_remove_isolated_option_cleans_unambiguous_noise(self) -> None:
+        rgba = np.array(
+            [
+                [[0, 0, 0, 255], [0, 0, 0, 255], [0, 0, 0, 255]],
+                [[0, 0, 0, 255], [255, 0, 0, 255], [0, 0, 0, 255]],
+                [[0, 0, 0, 255], [0, 0, 0, 255], [0, 0, 0, 255]],
+            ],
+            dtype=np.uint8,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            input_path = Path(tmp) / "input.png"
+            output_path = Path(tmp) / "output.png"
+            Image.fromarray(rgba, mode="RGBA").save(input_path)
+
+            result = clean_image(
+                input_path,
+                output_path,
+                CleanOptions(
+                    cell_width=1,
+                    cell_height=1,
+                    colors=2,
+                    palette=[(0, 0, 0, 255), (255, 0, 0, 255)],
+                    remove_isolated=True,
+                ),
+            )
+
+            np.testing.assert_array_equal(
+                result.asset.pixels,
+                np.zeros((3, 3), dtype=np.uint8),
+            )
+            self.assertEqual(result.report.metrics["isolated_visible_pixels"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

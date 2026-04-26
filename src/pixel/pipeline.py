@@ -64,7 +64,11 @@ def clean_image(input_path: str | Path, output_path: str | Path, options: CleanO
     )
     snapped = snap_to_palette(resolved, palette)
     rasterized = rasterize_indexed(snapped, grid, palette_size=len(palette.colors))
-    cleaned = cleanup_indexed(rasterized)
+    cleaned = cleanup_indexed(
+        rasterized,
+        transparent_index=palette.transparent_index,
+        remove_isolated=options.remove_isolated,
+    )
     asset = SpriteAsset(grid=grid, palette=palette, pixels=cleaned)
 
     report = validate_asset(
