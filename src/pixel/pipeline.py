@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pixel.ai_cleanup import apply_ai_cleanup_advice
+from pixel.ai_gemini import plan_gemini_cleanup
 from pixel.alpha import estimate_background_color, resolve_alpha
 from pixel.cleanup import cleanup_indexed
 from pixel.export import save_png
@@ -70,12 +72,45 @@ def clean_image(input_path: str | Path, output_path: str | Path, options: CleanO
         remove_isolated=options.remove_isolated,
     )
     asset = SpriteAsset(grid=grid, palette=palette, pixels=cleaned)
-
     report = validate_asset(
         asset,
         source_width=source_width,
         source_height=source_height,
         warnings=warnings + grid_warnings,
     )
+
+    ai_advice_report = None
+    if options.ai_cleanup is not None:
+        if options.ai_cleanup != "gemini":
+            raise ValueError(f"unsupported AI cleanup provider: {options.ai_cleanup}")
+        advice = plan_gemini_cleanup(
+            input_path,
+            asset,
+            report,
+            model=options.ai_model,
+        )
+        before_metrics = dict(report.metrics)
+        application = apply_ai_cleanup_advice(
+            asset.pixels,
+            advice,
+            transparent_index=palette.transparent_index,
+        )
+        asset = SpriteAsset(grid=grid, palette=palette, pixels=application.pixels)
+        report = validate_asset(
+            asset,
+            source_width=source_width,
+            source_height=source_height,
+            warnings=warnings + grid_warnings + application.warnings,
+        )
+        ai_advice_report = {
+            "model": options.ai_model,
+            "advice": advice.to_dict(),
+            "accepted_regions": application.accepted_regions,
+            "ignored_regions": application.ignored_regions,
+            "warnings": application.warnings,
+            "metrics_before": before_metrics,
+            "metrics_after": report.metrics,
+        }
+
     save_png(output_path, asset)
-    return CleanResult(asset=asset, report=report)
+    return CleanResult(asset=asset, report=report, ai_advice=ai_advice_report)

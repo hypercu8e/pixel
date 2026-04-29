@@ -118,9 +118,12 @@ class CleanOptions:
     transparent_tolerance: int = 0
     alpha_threshold: int | None = 1
     remove_isolated: bool = False
+    ai_cleanup: str | None = None
+    ai_model: str = "gemini-2.5-flash"
 
 
 @dataclass(frozen=True)
 class CleanResult:
     asset: SpriteAsset
     report: ValidationReport
+    ai_advice: dict[str, Any] | None = None

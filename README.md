@@ -77,6 +77,16 @@ Dipendenze runtime esterne:
 
 La CLI usa `argparse`; i modelli dati usano `dataclasses`.
 
+Per il cleanup assistito da modello vision:
+
+```bash
+python -m pip install -e ".[ai]"
+export GEMINI_API_KEY="..."
+```
+
+L'extra `ai` installa il client Gemini. La pipeline base resta utilizzabile
+senza questa dipendenza.
+
 ## Usage
 
 Percorso consigliato per il MVP: specificare manualmente la dimensione della
@@ -131,6 +141,22 @@ pixel clean input.png output.png \
 `--auto-background` e' opt-in perche' puo' sbagliare se il soggetto tocca molto
 i bordi dell'immagine.
 
+Per chiedere a Gemini di indicare zone sospette su cui applicare cleanup locale:
+
+```bash
+pixel clean input.png output.png \
+  --cell-width 8 \
+  --colors 16 \
+  --ai-cleanup gemini \
+  --ai-advice-report advice.json \
+  --report report.json
+```
+
+Questa modalita' non fa generare pixel finali al modello. Gemini guarda
+immagine, output provvisorio e report, poi restituisce regioni in coordinate
+griglia con azioni consentite. Il programma applica solo cleanup deterministico
+su quelle regioni e salva cosa e' stato accettato o ignorato in `advice.json`.
+
 Esiste anche un auto-grid euristico:
 
 ```bash
@@ -151,13 +177,14 @@ Reale:
 - majority voting su blocchi della griglia
 - export PNG RGBA ricostruito da palette e indici
 - report JSON opzionale
+- cleanup mirato da advice Gemini opzionale
 
 Ancora minimale:
 
 - auto grid detection e' solo una euristica semplice
 - cleanup dei pixel isolati e' opt-in e corregge solo casi non ambigui
 - export `.aseprite` e PNG palettizzato sono rimandati
-- nessuna integrazione AI
+- l'integrazione AI non genera immagini: suggerisce solo regioni/azioni di cleanup
 
 ## Principi
 

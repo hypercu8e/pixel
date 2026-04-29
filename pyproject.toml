@@ -17,6 +17,9 @@ dependencies = [
 dev = [
   "pytest>=8",
 ]
+ai = [
+  "google-genai>=1",
+]
 
 [project.scripts]
 pixel = "pixel.cli:main"

@@ -38,6 +38,7 @@ ingest RGBA
   -> hard color snap to palette
   -> constrained rasterizer con majority voting
   -> cleanup conservativo
+  -> optional vision cleanup planner
   -> validation report
   -> export
 ```
@@ -285,6 +286,24 @@ Controlli minimi:
 - rapporto silhouette/originale
 - bounding box
 - coerenza alpha
+
+### 7b. Vision Cleanup Planner
+
+Prima della generazione immagini vera, il primo uso pratico di AI e' un planner
+vision: il modello osserva input, output provvisorio e report, poi propone
+piccole regioni di griglia su cui lanciare cleanup deterministico piu'
+aggressivo.
+
+Contratto:
+
+- input: immagini + grid/palette/report
+- output: JSON con regioni `x`, `y`, `width`, `height`, `issue`, `action`,
+  `confidence`
+- azioni v1: `remove_isolated_pixels`, `remove_tiny_components`
+
+Il modello non decide mai i pixel finali. Le regioni vengono clippate alla
+griglia, le azioni sconosciute vengono ignorate e il report finale conserva cosa
+e' stato applicato.
 
 ### 8. Pose Generator (AI)
 
@@ -548,6 +567,7 @@ Decisioni MVP attuali:
 - constrained rasterizer usa majority voting sugli indici palette
 - dithering default `none`
 - cleanup conservativo, osservabile tramite validation report
+- cleanup assistito da Gemini opzionale solo come planner di regioni/azioni
 - output iniziale PNG RGBA ricostruito da palette e indici; PNG palettizzato
   rimandabile
 - export `.aseprite` e' target prioritario post-MVP per integrarsi bene con il

@@ -52,6 +52,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Remove unambiguous isolated visible pixels after rasterization.",
     )
+    clean.add_argument(
+        "--ai-cleanup",
+        choices=["gemini"],
+        help="Ask a vision model for targeted cleanup regions before final export.",
+    )
+    clean.add_argument(
+        "--ai-model",
+        default="gemini-2.5-flash",
+        help="Model used by --ai-cleanup. Default: gemini-2.5-flash.",
+    )
+    clean.add_argument(
+        "--ai-advice-report",
+        type=Path,
+        help="Optional JSON report with AI cleanup advice and applied regions.",
+    )
     clean.add_argument("--report", type=Path, help="Optional JSON validation report path.")
     clean.add_argument("--quiet", action="store_true")
     clean.set_defaults(func=run_clean)
@@ -59,6 +74,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_clean(args: argparse.Namespace) -> int:
+    if args.ai_advice_report and not args.ai_cleanup:
+        print("error: --ai-advice-report requires --ai-cleanup", file=sys.stderr)
+        return 2
+
     transparent_color = (
         parse_hex_color(args.transparent_color) if args.transparent_color else None
     )
@@ -79,6 +98,8 @@ def run_clean(args: argparse.Namespace) -> int:
         transparent_tolerance=args.transparent_tolerance,
         alpha_threshold=args.alpha_threshold,
         remove_isolated=args.remove_isolated,
+        ai_cleanup=args.ai_cleanup,
+        ai_model=args.ai_model,
     )
 
     try:
@@ -99,6 +120,13 @@ def run_clean(args: argparse.Namespace) -> int:
             encoding="utf-8",
         )
 
+    if args.ai_advice_report:
+        args.ai_advice_report.parent.mkdir(parents=True, exist_ok=True)
+        args.ai_advice_report.write_text(
+            json.dumps(result.ai_advice, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+
     if not args.quiet:
         _print_result(result, args.output)
     return 0 if result.report.ok else 1
@@ -116,6 +144,10 @@ def _print_result(result, output: Path) -> None:
     )
     print(f"Palette: {len(palette.colors)} colors")
     print(f"Output: {output}")
+    if result.ai_advice:
+        accepted = len(result.ai_advice["accepted_regions"])
+        ignored = len(result.ai_advice["ignored_regions"])
+        print(f"AI cleanup: {accepted} accepted region(s), {ignored} ignored")
 
     for warning in result.report.warnings:
         print(f"warning: {warning}")
